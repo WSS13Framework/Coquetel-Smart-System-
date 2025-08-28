@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Dashboard - Coquetel Smart</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4caf50;
+        }
+        
+        .stat-label {
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        .pedidos-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .pedidos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+        }
+        
+        .pedido-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .pedido-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(5px);
+        }
+        
+        .pedido-info {
+            flex: 1;
+        }
+        
+        .pedido-drink {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .pedido-mesa {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+        
+        .pedido-time {
+            color: #888;
+            font-size: 0.8em;
+        }
+        
+        .pedido-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-preparar {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn-pronto {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-entregue {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-pendente {
+            background: #ff5722;
+            color: white;
+        }
+        
+        .status-preparando {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .status-pronto {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .status-entregue {
+            background: #607d8b;
+            color: white;
+        }
+        
+        .auto-refresh {
+            color: #4caf50;
+            font-size: 0.9em;
+        }
+        
+        #pedidosList:empty::after {
+            content: "Nenhum pedido no momento";
+            display: block;
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>📊 Dashboard do Bar</h1>
+            <p>Coquetel Smart System - WSS+13</p>
+        </div>
+        <div class="auto-refresh">
+            ⟳ Atualização automática: <span id="countdown">5</span>s
+        </div>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number" id="totalPedidos">0</div>
+            <div class="stat-label">Total de Pedidos</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="pedidosPendentes">0</div>
+            <div class="stat-label">Pendentes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="pedidosPreparando">0</div>
+            <div class="stat-label">Preparando</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="mesasAtivas">0</div>
+            <div class="stat-label">Mesas Ativas</div>
+        </div>
+    </div>
+    
+    <div class="pedidos-container">
+        <div class="pedidos-header">
+            <h2>🍸 Pedidos em Tempo Real</h2>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterPedidos('todos')">Todos</button>
+                <button class="filter-btn" onclick="filterPedidos('pendente')">Pendentes</button>
+                <button class="filter-btn" onclick="filterPedidos('preparando')">Preparando</button>
+                <button class="filter-btn" onclick="filterPedidos('pronto')">Prontos</button>
+            </div>
+        </div>
+        <div id="pedidosList"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8001';
+        let currentFilter = 'todos';
+        let countdownValue = 5;
+        
+        // Mapeamento de emojis
+        const drinkEmojis = {
+            'Mojito': '🍃',
+            'Caipirinha': '🍋',
+            'Gin Tônica': '🌿',
+            'Whisky Sour': '🥃',
+            'Cosmopolitan': '🍸',
+            'Água/Refri': '💧'
+        };
+        
+        async function loadPedidos() {
+            try {
+                const response = await fetch(`${API_URL}/pedidos`);
+                const pedidos = await response.json();
+                
+                // Filtrar pedidos
+                let filteredPedidos = pedidos;
+                if (currentFilter !== 'todos') {
+                    filteredPedidos = pedidos.filter(p => p.status === currentFilter);
+                }
+                
+                // Atualizar estatísticas
+                updateStats(pedidos);
+                
+                // Renderizar pedidos
+                renderPedidos(filteredPedidos);
+                
+            } catch (error) {
+                console.error('Erro ao carregar pedidos:', error);
+            }
+        }
+        
+        function updateStats(pedidos) {
+            const stats = {
+                total: pedidos.length,
+                pendente: pedidos.filter(p => p.status === 'pendente').length,
+                preparando: pedidos.filter(p => p.status === 'preparando').length,
+                mesas: new Set(pedidos.filter(p => p.status !== 'entregue').map(p => p.mesa)).size
+            };
+            
+            document.getElementById('totalPedidos').textContent = stats.total;
+            document.getElementById('pedidosPendentes').textContent = stats.pendente;
+            document.getElementById('pedidosPreparando').textContent = stats.preparando;
+            document.getElementById('mesasAtivas').textContent = stats.mesas;
+        }
+        
+        function renderPedidos(pedidos) {
+            const container = document.getElementById('pedidosList');
+            
+            // Filtrar apenas pedidos não entregues para exibição principal
+            const pedidosAtivos = pedidos.filter(p => p.status !== 'entregue').slice(0, 20);
+            
+            if (pedidosAtivos.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            container.innerHTML = pedidosAtivos.map(pedido => {
+                const emoji = drinkEmojis[pedido.drink_name] || '🍹';
+                const time = new Date(pedido.timestamp).toLocaleTimeString('pt-BR');
+                
+                return `
+                    <div class="pedido-item">
+                        <div class="pedido-info">
+                            <div class="pedido-drink">${emoji} ${pedido.drink_name}</div>
+                            <div class="pedido-mesa">Mesa/Nome: ${pedido.mesa}</div>
+                            <div class="pedido-time">Pedido às ${time}</div>
+                        </div>
+                        <div class="pedido-actions">
+                            <span class="status-badge status-${pedido.status}">${pedido.status}</span>
+                            ${getActionButtons(pedido)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function getActionButtons(pedido) {
+            switch(pedido.status) {
+                case 'pendente':
+                    return `<button class="action-btn btn-preparar" onclick="updateStatus(${pedido.id}, 'preparando')">Preparar</button>`;
+                case 'preparando':
+                    return `<button class="action-btn btn-pronto" onclick="updateStatus(${pedido.id}, 'pronto')">Pronto</button>`;
+                case 'pronto':
+                    return `<button class="action-btn btn-entregue" onclick="updateStatus(${pedido.id}, 'entregue')">Entregue</button>`;
+                default:
+                    return '';
+            }
+        }
+        
+        async function updateStatus(pedidoId, novoStatus) {
+            try {
+                const response = await fetch(`${API_URL}/pedido/${pedidoId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: novoStatus })
+                });
+                
+                if (response.ok) {
+                    // Tocar som de notificação
+                    playNotificationSound();
+                    // Recarregar pedidos
+                    loadPedidos();
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+            }
+        }
+        
+        function filterPedidos(filter) {
+            currentFilter = filter;
+            
+            // Atualizar botões
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Recarregar pedidos
+            loadPedidos();
+        }
+        
+        function playNotificationSound() {
+            // Som de notificação (beep simples)
+            const audio = new AudioContext();
+            const oscillator = audio.createOscillator();
+            const gainNode = audio.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audio.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audio.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audio.currentTime + 0.1);
+            
+            oscillator.start(audio.currentTime);
+            oscillator.stop(audio.currentTime + 0.1);
+        }
+        
+        // Atualização automática
+        function startAutoRefresh() {
+            setInterval(() => {
+                countdownValue--;
+                if (countdownValue <= 0) {
+                    countdownValue = 5;
+                    loadPedidos();
+                }
+                document.getElementById('countdown').textContent = countdownValue;
+            }, 1000);
+        }
+        
+        // Inicializar
+        loadPedidos();
+        startAutoRefresh();
+        
+        // Detectar novos pedidos (websocket simulado)
+        let lastPedidoCount = 0;
+        setInterval(async () => {
+            try {
+                const response = await fetch(`${API_URL}/estatisticas`);
+                const stats = await response.json();
+                
+                if (stats.total_pedidos > lastPedidoCount && lastPedidoCount > 0) {
+                    // Novo pedido detectado!
+                    playNotificationSound();
+                    console.log('🔔 Novo pedido detectado!');
+                }
+                lastPedidoCount = stats.total_pedidos;
+            } catch (error) {
+                // Silencioso
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

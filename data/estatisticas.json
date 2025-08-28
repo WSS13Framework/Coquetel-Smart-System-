@@ -1,0 +1,11 @@
+{
+  "total_pedidos": 1,
+  "pedidos_hoje": 1,
+  "drinks_populares": {
+    "Mojito": 1
+  },
+  "mesas_ativas": [
+    "847"
+  ],
+  "ultima_atualizacao": "2025-08-28T16:56:53.146839"
+}

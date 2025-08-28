@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍸 Coquetel Smart - Sistema de Pedidos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 450px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .event-info {
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .drinks-grid {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .drink-card {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .drink-card:hover {
+            transform: translateX(5px);
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .drink-emoji {
+            font-size: 2.5em;
+            margin-right: 15px;
+        }
+        
+        .drink-info {
+            flex: 1;
+        }
+        
+        .drink-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .drink-desc {
+            font-size: 0.85em;
+            color: #666;
+        }
+        
+        .status-bar {
+            margin-top: 25px;
+            padding: 12px;
+            background: #4caf50;
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid #4caf50;
+        }
+        
+        .notification.error {
+            border-left: 4px solid #f44336;
+        }
+        
+        .mesa-input {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        
+        .mesa-input label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .mesa-input input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+        
+        .mesa-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🍸</div>
+            <div class="title">Coquetel Smart</div>
+        </div>
+        
+        <div class="event-info">
+            <strong>�� Evento Corporativo WSS+13</strong><br>
+            <small>Sistema Inteligente de Pedidos</small>
+        </div>
+        
+        <div class="mesa-input">
+            <label for="mesa">Número da Mesa / Nome:</label>
+            <input type="text" id="mesa" placeholder="Ex: Mesa 5 ou João Silva" />
+        </div>
+        
+        <div class="drinks-grid" id="drinksGrid"></div>
+        
+        <div class="status-bar">
+            <div class="status-dot"></div>
+            <span>Sistema Online - Bar Operacional</span>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        const API_URL = 'http://localhost:8001';
+        
+        const drinks = [
+            { id: 1, name: 'Mojito', emoji: '🍃', desc: 'Refrescante com hortelã' },
+            { id: 2, name: 'Caipirinha', emoji: '🍋', desc: 'Cachaça com limão' },
+            { id: 3, name: 'Gin Tônica', emoji: '🌿', desc: 'Gin premium especial' },
+            { id: 4, name: 'Whisky Sour', emoji: '🥃', desc: 'Bourbon com limão' },
+            { id: 5, name: 'Cosmopolitan', emoji: '��', desc: 'Vodka com cranberry' },
+            { id: 6, name: 'Água/Refri', emoji: '💧', desc: 'Bebidas sem álcool' }
+        ];
+        
+        function renderDrinks() {
+            const grid = document.getElementById('drinksGrid');
+            grid.innerHTML = drinks.map(drink => `
+                <div class="drink-card" onclick="orderDrink(${drink.id}, '${drink.name}')">
+                    <div class="drink-emoji">${drink.emoji}</div>
+                    <div class="drink-info">
+                        <div class="drink-name">${drink.name}</div>
+                        <div class="drink-desc">${drink.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function orderDrink(id, name) {
+            const mesa = document.getElementById('mesa').value.trim();
+            
+            if (!mesa) {
+                showNotification('Por favor, informe a mesa ou nome', 'error');
+                document.getElementById('mesa').focus();
+                return;
+            }
+            
+            const pedido = {
+                drink_id: id,
+                drink_name: name,
+                mesa: mesa,
+                timestamp: new Date().toISOString(),
+                evento: 'WSS+13'
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/pedido`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(pedido)
+                });
+                
+                if (response.ok) {
+                    showNotification(`✅ ${name} - Pedido enviado!`, 'success');
+                } else {
+                    throw new Error('Erro no servidor');
+                }
+            } catch (error) {
+                showNotification('❌ Erro ao enviar pedido', 'error');
+                console.error(error);
+            }
+        }
+        
+        function showNotification(message, type) {
+            const notif = document.getElementById('notification');
+            notif.className = `notification ${type}`;
+            notif.textContent = message;
+            notif.classList.add('show');
+            
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Verificar status da API
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_URL}/status`);
+                if (!response.ok) throw new Error();
+            } catch {
+                showNotification('⚠️ Conectando ao servidor...', 'error');
+            }
+        }
+        
+        // Inicializar
+        renderDrinks();
+        checkAPIStatus();
+        
+        // Verificar status periodicamente
+        setInterval(checkAPIStatus, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍸 Coquetel</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 350px;
+            width: 90%;
+        }
+        h1 { 
+            font-size: 2.5em; 
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .drink {
+            background: #f8f9fa;
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px 0;
+            width: 100%;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .drink:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .selected {
+            background: #667eea !important;
+            color: white;
+        }
+        #orderBtn {
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 20px 40px;
+            font-size: 1.3em;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+            display: none;
+        }
+        #orderBtn:hover { background: #218838; }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        .success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍸</h1>
+        
+        <button class="drink" onclick="selectDrink('Caipirinha', this)">
+            🍋 Caipirinha
+        </button>
+        
+        <button class="drink" onclick="selectDrink('Mojito', this)">
+            🌿 Mojito
+        </button>
+        
+        <button class="drink" onclick="selectDrink('Whisky', this)">
+            🥃 Whisky
+        </button>
+        
+        <button class="drink" onclick="selectDrink('Cerveja', this)">
+            🍺 Cerveja
+        </button>
+        
+        <button id="orderBtn" onclick="makeOrder()">
+            PEDIR AGORA
+        </button>
+        
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        let selectedDrink = '';
+        
+        function selectDrink(drink, element) {
+            // Remove seleção anterior
+            document.querySelectorAll('.drink').forEach(btn => 
+                btn.classList.remove('selected')
+            );
+            
+            // Seleciona atual
+            element.classList.add('selected');
+            selectedDrink = drink;
+            
+            // Mostra botão
+            document.getElementById('orderBtn').style.display = 'block';
+        }
+        
+        function makeOrder() {
+            if (!selectedDrink) return;
+            
+            // Simula pedido
+            const status = document.getElementById('status');
+            status.innerHTML = `✅ ${selectedDrink} pedido com sucesso!<br>📱 Você receberá um WhatsApp quando estiver pronto.`;
+            status.className = 'status success';
+            status.style.display = 'block';
+            
+            // Esconde botão
+            document.getElementById('orderBtn').style.display = 'none';
+            
+            // Reset após 3 segundos
+            setTimeout(() => {
+                location.reload();
+            }, 3000);
+            
+            // Aqui enviaria para o backend
+            console.log('Pedido:', selectedDrink);
+        }
+    </script>
+</body>
+</html>
