@@ -1,0 +1,38 @@
+name: coquetel-smart-system
+services:
+- name: backend-api
+  git:
+    repo_clone_url: https://github.com/WSS13Framework/Coquetel-Smart-System-.git
+    branch: main
+    root_dir: /backend
+  build_command: pip install Flask Flask-CORS
+  run_command: python3 server_api.py
+  ports:
+  - port: 8001
+  instance_count: 1
+  instance_size_slug: basic-xxs
+static_sites:
+- name: frontend-client
+  git:
+    repo_clone_url: https://github.com/WSS13Framework/Coquetel-Smart-System-.git
+    branch: main
+    root_dir: /frontend
+  build_command: ""
+  output_dir: ""
+- name: dashboard-bar
+  git:
+    repo_clone_url: https://github.com/WSS13Framework/Coquetel-Smart-System-.git
+    branch: main
+    root_dir: /dashboard
+  build_command: ""
+  output_dir: ""
+workers:
+- name: system-monitor
+  git:
+    repo_clone_url: https://github.com/WSS13Framework/Coquetel-Smart-System-.git
+    branch: main
+    root_dir: /scripts
+  build_command: ""
+  run_command: python3 monitor.py
+  instance_count: 1
+  instance_size_slug: basic-xxs
